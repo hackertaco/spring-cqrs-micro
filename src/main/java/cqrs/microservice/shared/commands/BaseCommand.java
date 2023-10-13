@@ -1,4 +1,4 @@
-package cqrs.microservice.shared;
+package cqrs.microservice.shared.commands;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

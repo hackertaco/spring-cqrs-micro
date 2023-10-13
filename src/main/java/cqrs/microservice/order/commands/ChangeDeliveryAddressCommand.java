@@ -1,6 +1,6 @@
 package cqrs.microservice.order.commands;
 
-import cqrs.microservice.shared.BaseCommand;
+import cqrs.microservice.shared.commands.BaseCommand;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
