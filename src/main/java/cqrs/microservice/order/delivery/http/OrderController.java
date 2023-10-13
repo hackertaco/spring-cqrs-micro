@@ -1,6 +1,7 @@
 package cqrs.microservice.order.delivery.http;
 
 import cqrs.microservice.order.commands.CreateOrderCommand;
+import cqrs.microservice.order.domain.OrderStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ public class OrderController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CreateOrderCommand> createOrder(@RequestBody CreateOrderCommand command){
         command.setId(UUID.randomUUID().toString());
+        command.setStatus(OrderStatus.NEW);
         log.info("CreateOrderCommand: {}", command);
         return ResponseEntity.status(HttpStatus.CREATED).body(command);
     }

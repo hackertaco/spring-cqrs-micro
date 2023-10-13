@@ -1,5 +1,6 @@
 package cqrs.microservice.order.commands;
 
+import cqrs.microservice.order.domain.OrderStatus;
 import cqrs.microservice.shared.BaseCommand;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,9 @@ import java.time.ZonedDateTime;
 @ToString(callSuper = true)
 public class CreateOrderCommand extends BaseCommand {
     private String email;
+    private String userEmail;
+    private String userName;
     private String deliveryAddress;
+    private OrderStatus status;
     private ZonedDateTime deliveryDate;
 }
