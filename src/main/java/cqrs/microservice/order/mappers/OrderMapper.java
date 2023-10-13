@@ -1,7 +1,11 @@
 package cqrs.microservice.order.mappers;
 
+import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.domain.Order;
 import cqrs.microservice.order.dto.OrderResponseDto;
+
+import java.time.ZonedDateTime;
+import java.util.UUID;
 
 public final class OrderMapper {
     public static OrderResponseDto orderResponseDtoFromEntity(Order order){
@@ -14,6 +18,18 @@ public final class OrderMapper {
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .status(order.getStatus().name())
+                .build();
+    }
+    public static Order orderFromCreateOrderCommand(CreateOrderCommand command){
+        return Order.builder()
+                .id(UUID.fromString(command.getId()))
+                .userEmail(command.getUserEmail())
+                .userName(command.getUserName())
+                .status(command.getStatus())
+                .deliveryAddress(command.getDeliveryAddress())
+                .deliveryDate(command.getDeliveryDate())
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
                 .build();
     }
 }

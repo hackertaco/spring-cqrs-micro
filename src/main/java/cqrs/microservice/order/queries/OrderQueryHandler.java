@@ -1,6 +1,7 @@
 package cqrs.microservice.order.queries;
 
 import cqrs.microservice.order.dto.OrderResponseDto;
+import cqrs.microservice.order.exceptions.OrderNotFoundException;
 import cqrs.microservice.order.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderPostgresRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,9 @@ public class OrderQueryHandler implements QueryHandler{
     private final OrderPostgresRepository postgresRepository;
 
     @Override
-    public Optional<OrderResponseDto> handle(GetOrderByIdQuery query) {
+    public OrderResponseDto handle(GetOrderByIdQuery query) {
         final var order = postgresRepository.findById(UUID.fromString(query.getId()));
-        if(order.isPresent()){
-            return Optional.ofNullable(OrderMapper.orderResponseDtoFromEntity(order.get()));
-        }
-        return Optional.empty();
+        if(order.isEmpty()) throw new OrderNotFoundException("order not found: "+ query.getId());
+        return OrderMapper.orderResponseDtoFromEntity(order.get());
     }
 }
