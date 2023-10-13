@@ -8,6 +8,7 @@ import cqrs.microservice.order.domain.OrderStatus;
 import cqrs.microservice.order.dto.OrderResponseDto;
 import cqrs.microservice.order.queries.GetOrderByIdQuery;
 import cqrs.microservice.order.queries.QueryHandler;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CreateOrderCommand> createOrder(@RequestBody CreateOrderCommand command){
+    public ResponseEntity<CreateOrderCommand> createOrder(@Valid @RequestBody CreateOrderCommand command){
         command.setId(UUID.randomUUID().toString());
         command.setStatus(OrderStatus.NEW);
         final var id = commandHandler.handle(command);
@@ -42,7 +43,7 @@ public class OrderController {
     }
 
     @PutMapping(path = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> changeDeliveryAddress(@RequestBody ChangeDeliveryAddressCommand command,
+    public ResponseEntity<Void> changeDeliveryAddress(@RequestBody @Valid ChangeDeliveryAddressCommand command,
                                                       @PathVariable String id) {
         command.setId(id);
         commandHandler.handle(command);
@@ -50,7 +51,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
     @PutMapping(path = "{id}/status", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateOrderStatus(@RequestBody UpdateOrderStatusCommand command,
+    public ResponseEntity<Void> updateOrderStatus(@RequestBody @Valid UpdateOrderStatusCommand command,
                                                       @PathVariable String id) {
         command.setId(id);
         commandHandler.handle(command);
