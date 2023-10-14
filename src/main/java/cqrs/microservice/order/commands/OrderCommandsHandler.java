@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cqrs.microservice.configuration.OrderKafkaTopics;
 import cqrs.microservice.order.domain.Order;
 import cqrs.microservice.order.domain.OrderStatus;
+import cqrs.microservice.order.events.OrderCreatedEvent;
+import cqrs.microservice.order.events.OrderDeliveryAddressChangedEvent;
+import cqrs.microservice.order.events.OrderStatusUpdatedEvent;
 import cqrs.microservice.order.exceptions.OrderNotFoundException;
 import cqrs.microservice.order.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderPostgresRepository;
@@ -39,6 +42,7 @@ public class OrderCommandsHandler implements CommandHandler{
     public String handle(CreateOrderCommand command) {
         final var order = OrderMapper.orderFromCreateOrderCommand(command);
         final var savedOrder = postgresRepository.save(order);
+        final var event = new OrderCreatedEvent(order.getUserEmail(), order.getUserName(), order.getDeliveryAddress(), order.getStatus(), order.getDeliveryDate());
         publishMessage(orderKafkaTopics.getOrderCreatedTopic(), savedOrder, null);
         log.info("savedOrder: {}", savedOrder);
         return savedOrder.getId().toString();
@@ -54,6 +58,7 @@ public class OrderCommandsHandler implements CommandHandler{
         order.setStatus(OrderStatus.valueOf(command.getStatus().toString()));
         order.setUpdatedAt(ZonedDateTime.now());
         postgresRepository.save(order);
+        final var event = new OrderStatusUpdatedEvent(order.getStatus());
         publishMessage(orderKafkaTopics.getOrderStatusUpdatedTopic(), order, Map.of("Taco", "PRO".getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -67,7 +72,7 @@ public class OrderCommandsHandler implements CommandHandler{
         order.setDeliveryAddress(command.getDeliveryAddress());
         order.setUpdatedAt(ZonedDateTime.now());
         postgresRepository.save(order);
-
+        final var event = new OrderDeliveryAddressChangedEvent(order.getDeliveryAddress());
         publishMessage(orderKafkaTopics.getOrderAddressChangedTopic(), order, null);
     }
     private void publishMessage(String topic, Object data, Map<String, byte[]> headers){
