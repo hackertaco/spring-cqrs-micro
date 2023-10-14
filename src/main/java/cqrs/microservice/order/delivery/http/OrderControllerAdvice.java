@@ -3,6 +3,7 @@ package cqrs.microservice.order.delivery.http;
 import cqrs.microservice.order.exceptions.NotFoundExceptionResponse;
 import cqrs.microservice.order.exceptions.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -43,7 +44,7 @@ public class OrderControllerAdvice extends ResponseEntityExceptionHandler {
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(x -> x.getDefaultMessage())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
         body.put("errors", errors);
 
