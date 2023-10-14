@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -61,10 +64,13 @@ public class OrderCommandsHandler implements CommandHandler{
             byte[] bytes = objectMapper.writeValueAsBytes(order);
             ProducerRecord<String, byte[]> record = new ProducerRecord<>("change_delivery_address", bytes);
             record.headers().add("Alex", "PRO".getBytes());
-            kafkaTemplate.send(record);
+            kafkaTemplate.send(record).get(1000, TimeUnit.MILLISECONDS);
             log.info("kafka send: {}", record);
         } catch (JsonProcessingException e) {
             log.error("JsonProcessingException: {}", e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ExecutionException | InterruptedException | TimeoutException e){
+            log.error("kafkaTemplate exception: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

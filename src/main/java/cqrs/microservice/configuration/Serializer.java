@@ -1,5 +1,6 @@
 package cqrs.microservice.configuration;
 
+import cqrs.microservice.shared.serializer.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -17,5 +18,10 @@ public class Serializer {
                 .addModule(new Jdk8Module())
                 .addModule(new JavaTimeModule())
                 .build();
+    }
+
+    @Bean(name = "objectMapperJsonSerializer")
+    public JsonSerializer jsonSerializer(ObjectMapper objectMapper){
+        return new JsonSerializer(objectMapper);
     }
 }
