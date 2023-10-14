@@ -30,17 +30,16 @@ public class OrderKafkaListener {
     public void changeDeliveryAddressListener(
             @Payload byte[] data,
             ConsumerRecordMetadata meta,
-            Acknowledgment ack,
-            @Header("Taco") byte[] header) {
+            Acknowledgment ack
+            ) {
         log.info("(Listener) topic: {}, partition: {}, timestamp:{}, offset: {}, data: {}", meta.topic(), meta.partition(), meta.timestamp(), meta.offset(), new String(data));
-        log.info("headers: {}", new String(header));
         try {
             Order order = jsonSerializer.deserializeFromJsonBytes(data, Order.class);
             ack.acknowledge();
             log.info("ack order: {}", order);
         }  catch (Exception e) {
             ack.nack(Duration.ofMillis(1000));
-            log.error("objectMapper.readValue: {}", e.getMessage());
+            log.error("changeDeliveryAddressListener: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -54,7 +53,7 @@ public class OrderKafkaListener {
             log.info("ack order: {}", order);
         }catch (IOException e){
             ack.nack(Duration.ofMillis(1000));
-            log.error("objectMapper.readValue: {}", e.getMessage());
+            log.error("updateOrderStatusListener: {}", e.getMessage());
         }
     }
     @KafkaListener(topics = {"order.kafka.topics.order-created"}, groupId = "order_microservice", concurrency = "10")
@@ -67,7 +66,7 @@ public class OrderKafkaListener {
             log.info("ack order: {}", order);
         } catch (IOException e) {
             ack.nack(Duration.ofMillis(1000));
-            log.error("objectMapper.readValue: {}", e.getMessage());
+            log.error("createOrderListener: {}", e.getMessage());
         }
     }
 }
