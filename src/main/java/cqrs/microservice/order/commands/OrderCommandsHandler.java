@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ public class OrderCommandsHandler implements CommandHandler{
     public String handle(CreateOrderCommand command) {
         final var order = OrderMapper.orderFromCreateOrderCommand(command);
         final var savedOrder = postgresRepository.save(order);
-        final var event = new OrderCreatedEvent(order.getUserEmail(), order.getUserName(), order.getDeliveryAddress(), order.getStatus(), order.getDeliveryDate());
+        final var event = new OrderCreatedEvent(order.getId().toString(), order.getUserEmail(), order.getUserName(), order.getDeliveryAddress(), order.getStatus(), order.getDeliveryDate());
         publishMessage(orderKafkaTopicsConfiguration.getOrderCreatedTopic(), savedOrder, null);
         log.info("savedOrder: {}", savedOrder);
         return savedOrder.getId().toString();
@@ -52,9 +52,9 @@ public class OrderCommandsHandler implements CommandHandler{
 
         final var order = orderOptional.get();
         order.setStatus(OrderStatus.valueOf(command.getStatus().toString()));
-        order.setUpdatedAt(ZonedDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
         postgresRepository.save(order);
-        final var event = new OrderStatusUpdatedEvent(order.getStatus());
+        final var event = new OrderStatusUpdatedEvent(order.getId().toString(),order.getStatus());
         publishMessage(orderKafkaTopicsConfiguration.getOrderStatusUpdatedTopic(), order, Map.of("Taco", "PRO".getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -66,9 +66,9 @@ public class OrderCommandsHandler implements CommandHandler{
 
         final var order = orderOptional.get();
         order.setDeliveryAddress(command.getDeliveryAddress());
-        order.setUpdatedAt(ZonedDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
         postgresRepository.save(order);
-        final var event = new OrderDeliveryAddressChangedEvent(order.getDeliveryAddress());
+        final var event = new OrderDeliveryAddressChangedEvent(order.getId().toString(),order.getDeliveryAddress());
         publishMessage(orderKafkaTopicsConfiguration.getOrderAddressChangedTopic(), order, null);
     }
     private void publishMessage(String topic, Object data, Map<String, byte[]> headers){

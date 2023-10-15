@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -34,11 +34,11 @@ public class Order {
     private OrderStatus status;
 
     @Column(name = "delivery_date")
-    private ZonedDateTime deliveryDate;
+    private LocalDateTime deliveryDate;
 
     @Column(name = "created_at")
-    private ZonedDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
+    private LocalDateTime updatedAt;
 }

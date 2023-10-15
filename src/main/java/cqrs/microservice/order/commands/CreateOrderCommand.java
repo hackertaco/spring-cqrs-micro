@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -18,19 +18,16 @@ import java.time.ZonedDateTime;
 @ToString(callSuper = true)
 public class CreateOrderCommand extends BaseCommand {
     @NotBlank
-    @Size(min = 10, message = "invalid min length")
-    @Size(max = 500, message = "max length is 500")
+    @Size(min = 10, max = 250, message = "invalid min length")
+    @Size(message = "max length is 500")
     private String userEmail;
     @NotBlank
-    @Size(min = 10, message = "invalid min length")
-    @Size(max = 500, message = "max length is 500")
+    @Size(min = 10, max = 250, message = "invalid userName length")
     private String userName;
     @NotBlank
-    @Size(min = 10, message = "invalid min length")
-    @Size(max = 500, message = "max length is 500")
+    @Size(min = 10, max = 250, message = "invalid deliveryAddress length")
     private String deliveryAddress;
-    @NotNull
     private OrderStatus status;
     @NotNull
-    private ZonedDateTime deliveryDate;
+    private LocalDateTime deliveryDate;
 }
