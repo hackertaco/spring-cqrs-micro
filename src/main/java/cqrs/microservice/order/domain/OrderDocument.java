@@ -35,7 +35,7 @@ public class OrderDocument {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private String status;
+    private OrderStatus status;
 
     @Column(name = "deliveryDate")
     private LocalDateTime deliveryDate;
