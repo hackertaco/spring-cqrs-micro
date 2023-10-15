@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 application.properties
-docker-compose.yaml
+.yaml
 ### STS ###
 .apt_generated
 .classpath
@@ -35,3 +35,4 @@ build/
 pgdata
 kafka_data
 zookeeper
+/mongodb_data_container/

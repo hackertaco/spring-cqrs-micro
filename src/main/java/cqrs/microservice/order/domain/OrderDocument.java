@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @Builder
 @Document(collation = "orders")
 public class OrderDocument {
+//    @Id
+//    private String objectId;
     @Id
-    private String objectId;
-
-    @Column(name = "id")
+    @Column(name = "_id")
     private String id;
 
     @Column(name = "userEmail")
