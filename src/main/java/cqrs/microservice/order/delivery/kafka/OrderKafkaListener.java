@@ -28,7 +28,7 @@ public class OrderKafkaListener {
     private final OrderKafkaTopicsConfiguration orderKafkaTopicsConfiguration;
     private final OrderMongoRepository orderMongoRepository;
 
-    @KafkaListener(topics = {"order.kafka.topics.order-address-changed"}, groupId = "${order.kafka.groupId}", concurrency = "10")
+    @KafkaListener(topics = {"${order.kafka.topics.order-address-changed}"}, groupId = "${order.kafka.groupId}", concurrency = "10")
     public void changeDeliveryAddressListener(
             @Payload byte[] data,
             ConsumerRecordMetadata meta,
@@ -47,7 +47,7 @@ public class OrderKafkaListener {
         }
     }
 
-    @KafkaListener(topics = {"order.kafka.topics.order-status-updated"}, groupId = "order_microservice", concurrency = "10")
+    @KafkaListener(topics = {"${order.kafka.topics.order-status-updated}"}, groupId = "${order.kafka.groupId}", concurrency = "10")
     public void updateOrderStatusListener(@Payload byte[] data,ConsumerRecordMetadata meta, Acknowledgment ack){
         logEvent(data, meta);
         try {
@@ -60,7 +60,7 @@ public class OrderKafkaListener {
             log.error("updateOrderStatusListener: {}", e.getMessage());
         }
     }
-    @KafkaListener(topics = {"order.kafka.topics.order-created"}, groupId = "order_microservice", concurrency = "10")
+    @KafkaListener(topics = {"${order.kafka.topics.order-created}"}, groupId = "${order.kafka.groupId}", concurrency = "10")
     public void createOrderListener(@Payload byte[] data,ConsumerRecordMetadata meta, Acknowledgment ack) {
         logEvent(data, meta);
 
