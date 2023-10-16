@@ -16,9 +16,9 @@ public final class OrderMapper {
                 .userEmail(order.getUserEmail())
                 .userName(order.getUserName())
                 .deliveryAddress(order.getDeliveryAddress())
-                .deliveryDate(order.getDeliveryDate())
-                .createdAt(order.getCreatedAt())
-                .updatedAt(order.getUpdatedAt())
+                .deliveryDate(order.getDeliveryDate().toString())
+                .createdAt(order.getCreatedAt().toString())
+                .updatedAt(order.getUpdatedAt().toString())
                 .status(order.getStatus().name())
                 .build();
     }
@@ -40,9 +40,9 @@ public final class OrderMapper {
                 .userEmail(order.getUserEmail())
                 .userName(order.getUserName())
                 .deliveryAddress(order.getDeliveryAddress())
-                .deliveryDate(order.getDeliveryDate())
-                .createdAt(order.getCreatedAt())
-                .updatedAt(order.getUpdatedAt())
+                .deliveryDate(order.getDeliveryDate().toString())
+                .createdAt(order.getCreatedAt().toString())
+                .updatedAt(order.getUpdatedAt().toString())
                 .status(order.getStatus().name())
                 .build();
     }
