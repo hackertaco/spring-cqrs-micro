@@ -4,10 +4,12 @@ import cqrs.microservice.order.commands.ChangeDeliveryAddressCommand;
 import cqrs.microservice.order.commands.CommandHandler;
 import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.commands.UpdateOrderStatusCommand;
+import cqrs.microservice.order.domain.Order;
 import cqrs.microservice.order.domain.OrderDocument;
 import cqrs.microservice.order.domain.OrderStatus;
 import cqrs.microservice.order.dto.OrderResponseDto;
 import cqrs.microservice.order.queries.GetOrderByIdQuery;
+import cqrs.microservice.order.queries.GetOrdersByStatusQuery;
 import cqrs.microservice.order.queries.GetOrdersByUserEmailQuery;
 import cqrs.microservice.order.queries.QueryHandler;
 import jakarta.validation.Valid;
@@ -46,6 +48,16 @@ public class OrderController {
         return ResponseEntity.ok(documents);
 
     }
+    @GetMapping(path = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<OrderDocument>> getOrdersByStatus(@RequestParam(name = "status", required = true) OrderStatus status,
+                                                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                                                 @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
+        log.info("status: {}", status);
+        final var documents = queryHandler.handle(new GetOrdersByStatusQuery(status, page, size));
+        log.info("documents: {} ", documents);
+        return ResponseEntity.ok(documents);
+    }
+
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CreateOrderCommand> createOrder(@Valid @RequestBody CreateOrderCommand command){
         command.setId(UUID.randomUUID().toString());
