@@ -35,24 +35,22 @@ public class OrderController {
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable String id){
         log.info("id: {}", id);
         final var order = queryHandler.handle(new GetOrderByIdQuery(id));
-        log.info("order: {}", order);
+        log.info("find order: {}", order);
         return ResponseEntity.ok(order);
     }
     @GetMapping(path = "/byEmail", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<OrderDocument>> getOrdersByEmail(@RequestHeader(name = "X-User-Email", required = true) String email,
+    public ResponseEntity<Page<OrderDocument>> getOrdersByEmail(@RequestHeader(name = "X-User-Email") String email,
                                                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                 @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
-        log.info("email: {}", email);
         final var documents = queryHandler.handle(new GetOrdersByUserEmailQuery(email, page, size));
         log.info("documents: {}", documents);
         return ResponseEntity.ok(documents);
 
     }
     @GetMapping(path = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<OrderDocument>> getOrdersByStatus(@RequestParam(name = "status", required = true) OrderStatus status,
+    public ResponseEntity<Page<OrderDocument>> getOrdersByStatus(@RequestParam(name = "status") OrderStatus status,
                                                                  @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
-        log.info("status: {}", status);
         final var documents = queryHandler.handle(new GetOrdersByStatusQuery(status, page, size));
         log.info("documents: {} ", documents);
         return ResponseEntity.ok(documents);
@@ -63,7 +61,7 @@ public class OrderController {
         command.setId(UUID.randomUUID().toString());
         command.setStatus(OrderStatus.NEW);
         final var id = commandHandler.handle(command);
-        log.info("created id: {}", id);
+        log.info("created order id: {}", id);
         return ResponseEntity.status(HttpStatus.CREATED).body(command);
     }
 
@@ -80,7 +78,7 @@ public class OrderController {
                                                       @PathVariable String id) {
         command.setId(id);
         commandHandler.handle(command);
-        log.info("changed address id :{}, status: {} ", id, command.getStatus());
+        log.info("updated status id :{}, status: {} ", id, command.getStatus());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

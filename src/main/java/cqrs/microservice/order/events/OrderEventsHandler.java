@@ -1,43 +1,32 @@
 package cqrs.microservice.order.events;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import cqrs.microservice.order.domain.OrderDocument;
+import cqrs.microservice.order.exceptions.OrderNotFoundException;
+import cqrs.microservice.order.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderMongoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 
 @Service
 @Slf4j
 @AllArgsConstructor
 public class OrderEventsHandler implements EventsHandler{
     private final OrderMongoRepository orderMongoRepository;
-    private final ObjectMapper objectMapper;
-    private final JsonSerializer jsonSerializer;
+
 
 
     @Override
     public void handle(OrderCreatedEvent event) {
-        final var document = OrderDocument.builder()
-                .id(event.id())
-                .userEmail(event.userEmail())
-                .userName(event.userName())
-                .deliveryAddress(event.deliveryAddress())
-                .deliveryDate(event.deliveryDate())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        final var document = OrderMapper.orderDocumentFromCreatedEvent(event);
         final var insert = orderMongoRepository.insert(document);
-        log.info("insert: {}", insert);
+        log.info("created mongodb order: {}", insert);
     }
 
     @Override
     public void handle(OrderStatusUpdatedEvent event) {
         final var document = orderMongoRepository.findById(event.id());
-        if(document.isEmpty()) throw new RuntimeException("order not found exception");
+        if(document.isEmpty()) throw new OrderNotFoundException("order not found exception");
 
         document.get().setStatus(event.status());
         orderMongoRepository.save(document.get());
@@ -46,7 +35,7 @@ public class OrderEventsHandler implements EventsHandler{
     @Override
     public void handle(OrderDeliveryAddressChangedEvent event) {
         final var document = orderMongoRepository.findById(event.id());
-        if(document.isEmpty()) throw new RuntimeException("order not found exception");
+        if(document.isEmpty()) throw new OrderNotFoundException("order not found exception");
 
         document.get().setDeliveryAddress(event.deliveryAddress());
         orderMongoRepository.save(document.get());

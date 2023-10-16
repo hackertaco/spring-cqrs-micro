@@ -4,6 +4,7 @@ import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.domain.Order;
 import cqrs.microservice.order.domain.OrderDocument;
 import cqrs.microservice.order.dto.OrderResponseDto;
+import cqrs.microservice.order.events.OrderCreatedEvent;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -55,6 +56,17 @@ public final class OrderMapper {
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .status(order.getStatus())
+                .build();
+    }
+    public static OrderDocument orderDocumentFromCreatedEvent(OrderCreatedEvent event) {
+        return OrderDocument.builder()
+                .id(event.id())
+                .userEmail(event.userEmail())
+                .userName(event.userName())
+                .deliveryAddress(event.deliveryAddress())
+                .deliveryDate(event.deliveryDate())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }
