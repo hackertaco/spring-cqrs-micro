@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface QueryHandler {
     OrderResponseDto handle(GetOrderByIdQuery query);
-    Page<OrderDocument> handle(GetOrdersByUserEmailQuery query);
-    Page<OrderDocument> handle(GetOrdersByStatusQuery query);
+    Page<OrderResponseDto> handle(GetOrdersByUserEmailQuery query);
+    Page<OrderResponseDto> handle(GetOrdersByStatusQuery query);
 }

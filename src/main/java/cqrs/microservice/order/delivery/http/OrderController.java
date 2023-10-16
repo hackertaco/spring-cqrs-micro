@@ -4,8 +4,6 @@ import cqrs.microservice.order.commands.ChangeDeliveryAddressCommand;
 import cqrs.microservice.order.commands.CommandHandler;
 import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.commands.UpdateOrderStatusCommand;
-import cqrs.microservice.order.domain.Order;
-import cqrs.microservice.order.domain.OrderDocument;
 import cqrs.microservice.order.domain.OrderStatus;
 import cqrs.microservice.order.dto.OrderResponseDto;
 import cqrs.microservice.order.queries.GetOrderByIdQuery;
@@ -39,7 +37,7 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
     @GetMapping(path = "/byEmail", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<OrderDocument>> getOrdersByEmail(@RequestHeader(name = "X-User-Email") String email,
+    public ResponseEntity<Page<OrderResponseDto>> getOrdersByEmail(@RequestHeader(name = "X-User-Email") String email,
                                                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                 @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByUserEmailQuery(email, page, size));
@@ -48,7 +46,7 @@ public class OrderController {
 
     }
     @GetMapping(path = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<OrderDocument>> getOrdersByStatus(@RequestParam(name = "status") OrderStatus status,
+    public ResponseEntity<Page<OrderResponseDto>> getOrdersByStatus(@RequestParam(name = "status") OrderStatus status,
                                                                  @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByStatusQuery(status, page, size));
