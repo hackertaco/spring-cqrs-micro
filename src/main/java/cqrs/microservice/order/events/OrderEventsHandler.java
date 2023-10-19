@@ -24,7 +24,7 @@ public class OrderEventsHandler implements EventsHandler{
     @Override
     @NewSpan(name = "(OrderCreatedEvent)")
     public void handle(OrderCreatedEvent event) {
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("COOL", "PRO"));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
         final var document = OrderMapper.orderDocumentFromCreatedEvent(event);
         final var insert = orderMongoRepository.insert(document);
         log.info("created mongodb order: {}", insert);
@@ -39,7 +39,7 @@ public class OrderEventsHandler implements EventsHandler{
 
         document.get().setStatus(event.status());
         orderMongoRepository.save(document.get());
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("document", document.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
     }
 
     @Override
@@ -50,6 +50,6 @@ public class OrderEventsHandler implements EventsHandler{
 
         document.get().setDeliveryAddress(event.deliveryAddress());
         orderMongoRepository.save(document.get());
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("document", document.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
     }
 }

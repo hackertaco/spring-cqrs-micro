@@ -100,6 +100,7 @@ public class OrderCommandsHandler implements CommandHandler{
             Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("record", record.toString()));
         } catch (Exception e){
             log.error("publishMessage error: {}", e.getMessage());
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.error(e));
             throw new RuntimeException(e);
         }
     }
