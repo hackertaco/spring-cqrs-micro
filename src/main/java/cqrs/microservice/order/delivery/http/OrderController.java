@@ -10,15 +10,18 @@ import cqrs.microservice.order.queries.GetOrderByIdQuery;
 import cqrs.microservice.order.queries.GetOrdersByStatusQuery;
 import cqrs.microservice.order.queries.GetOrdersByUserEmailQuery;
 import cqrs.microservice.order.queries.QueryHandler;
+import io.micrometer.tracing.Tracer;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -28,12 +31,14 @@ import java.util.UUID;
 public class OrderController {
     private final CommandHandler commandHandler;
     private final QueryHandler queryHandler;
+    private ObjectProvider<Tracer> tracer;
 
     @GetMapping(path = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable String id){
         log.info("id: {}", id);
         final var order = queryHandler.handle(new GetOrderByIdQuery(id));
         log.info("find order: {}", order);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("order", order.toString()));
         return ResponseEntity.ok(order);
     }
     @GetMapping(path = "/byEmail", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,6 +47,8 @@ public class OrderController {
                                                                 @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByUserEmailQuery(email, page, size));
         log.info("documents: {}", documents);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("documents", documents.toString()));
+
         return ResponseEntity.ok(documents);
 
     }
@@ -51,6 +58,8 @@ public class OrderController {
                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByStatusQuery(status, page, size));
         log.info("documents: {} ", documents);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("documents", documents.toString()));
+
         return ResponseEntity.ok(documents);
     }
 
@@ -60,6 +69,8 @@ public class OrderController {
         command.setStatus(OrderStatus.NEW);
         final var id = commandHandler.handle(command);
         log.info("created order id: {}", id);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(command);
     }
 
@@ -69,6 +80,8 @@ public class OrderController {
         command.setId(id);
         commandHandler.handle(command);
         log.info("changed address id :{}, address: {} ", id, command.getDeliveryAddress());
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+
         return ResponseEntity.status(HttpStatus.OK).build();
     }
     @PutMapping(path = "{id}/status", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -77,6 +90,8 @@ public class OrderController {
         command.setId(id);
         commandHandler.handle(command);
         log.info("updated status id :{}, status: {} ", id, command.getStatus());
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

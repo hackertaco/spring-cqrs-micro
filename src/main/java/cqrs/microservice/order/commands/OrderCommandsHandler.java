@@ -1,6 +1,5 @@
 package cqrs.microservice.order.commands;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cqrs.microservice.configuration.OrderKafkaTopicsConfiguration;
 import cqrs.microservice.order.domain.OrderStatus;
 import cqrs.microservice.order.events.OrderCreatedEvent;
@@ -10,9 +9,13 @@ import cqrs.microservice.order.exceptions.OrderNotFoundException;
 import cqrs.microservice.order.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderPostgresRepository;
 import cqrs.microservice.shared.serializer.JsonSerializer;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import io.micrometer.tracing.annotation.NewSpan;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -28,25 +32,31 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class OrderCommandsHandler implements CommandHandler{
     private final OrderPostgresRepository postgresRepository;
-    private final ObjectMapper objectMapper;
     private final KafkaTemplate<String, byte[]> kafkaTemplate;
     private final OrderKafkaTopicsConfiguration orderKafkaTopicsConfiguration;
     private final JsonSerializer jsonSerializer;
+    private final ObjectProvider<Tracer> tracer;
 
 
     @Override
+    @NewSpan(name = "(CreateOrderCommand)")
     public String handle(CreateOrderCommand command) {
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("CreateOrderCommand", command.toString()));
         final var order = OrderMapper.orderFromCreateOrderCommand(command);
         final var savedOrder = postgresRepository.save(order);
         final var event = new OrderCreatedEvent(order.getId().toString(), order.getUserEmail(), order.getUserName(), order.getDeliveryAddress(), order.getStatus(), order.getDeliveryDate());
+
         publishMessage(orderKafkaTopicsConfiguration.getOrderCreatedTopic(), savedOrder, null);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("savedOrder", savedOrder.toString()));
         log.info("savedOrder: {}", savedOrder);
         return savedOrder.getId().toString();
     }
 
     @Override
     @Transactional
+    @NewSpan(name = "(UpdateOrderStatusCommand)")
     public void handle(UpdateOrderStatusCommand command) {
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("UpdateOrderStatusCommand", command.toString()));
         final var orderOptional = postgresRepository.findById(UUID.fromString(command.getId()));
         if(orderOptional.isEmpty()) throw new OrderNotFoundException("order not found: " + command.getId());
 
@@ -56,11 +66,14 @@ public class OrderCommandsHandler implements CommandHandler{
         postgresRepository.save(order);
         final var event = new OrderStatusUpdatedEvent(order.getId().toString(),order.getStatus());
         publishMessage(orderKafkaTopicsConfiguration.getOrderStatusUpdatedTopic(), order, Map.of("Taco", "PRO".getBytes(StandardCharsets.UTF_8)));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
     }
 
     @Override
     @Transactional
+    @NewSpan(name = "(ChangeDeliveryAddressCommand)")
     public void handle(ChangeDeliveryAddressCommand command) {
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("ChangeDeliveryAddressCommand", command.toString()));
         final var orderOptional = postgresRepository.findById(UUID.fromString(command.getId()));
         if(orderOptional.isEmpty()) throw new OrderNotFoundException("order not found: " + command.getId());
 
@@ -70,10 +83,13 @@ public class OrderCommandsHandler implements CommandHandler{
         postgresRepository.save(order);
         final var event = new OrderDeliveryAddressChangedEvent(order.getId().toString(),order.getDeliveryAddress());
         publishMessage(orderKafkaTopicsConfiguration.getOrderAddressChangedTopic(), order, null);
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
     }
+    @NewSpan(name = "(publishMessage)")
     private void publishMessage(String topic, Object data, Map<String, byte[]> headers){
         try {
             byte[] bytes = jsonSerializer.serializeToJsonBytes(data);
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("data", new String(bytes)));
             ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, bytes);
 
             if(headers != null){
@@ -81,6 +97,7 @@ public class OrderCommandsHandler implements CommandHandler{
             }
             kafkaTemplate.send(record).get(1000, TimeUnit.MILLISECONDS);
             log.info("send success: {}", record);
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("record", record.toString()));
         } catch (Exception e){
             log.error("publishMessage error: {}", e.getMessage());
             throw new RuntimeException(e);
