@@ -39,7 +39,7 @@ public class OrderKafkaListener {
             ConsumerRecordMetadata meta,
             Acknowledgment ack
             ) {
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("data", new String(data)));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("data", new String(data)));
         logEvent(data, meta);
         try {
             final var event = jsonSerializer.deserializeFromJsonBytes(data,
@@ -48,7 +48,7 @@ public class OrderKafkaListener {
             log.info("ack event: {}", event);
         }  catch (Exception e) {
             ack.nack(Duration.ofMillis(1000));
-            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.error(e));
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.error(e));
             throw new RuntimeException(e);
         }
     }
@@ -57,7 +57,7 @@ public class OrderKafkaListener {
     @NewSpan(name = "(updateOrderStatusListener)")
     public void updateOrderStatusListener(@Payload byte[] data,ConsumerRecordMetadata meta, Acknowledgment ack){
         logEvent(data, meta);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("data", new String(data)));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("data", new String(data)));
         try {
             final var event = jsonSerializer.deserializeFromJsonBytes(data,
                     OrderStatusUpdatedEvent.class);
@@ -65,7 +65,7 @@ public class OrderKafkaListener {
             log.info("ack event: {}", event);
         }catch (Exception e){
             ack.nack(Duration.ofMillis(1000));
-            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.error(e));
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.error(e));
             log.error("updateOrderStatusListener: {}", e.getMessage());
         }
     }
@@ -73,7 +73,7 @@ public class OrderKafkaListener {
     @NewSpan(name = "(createOrderListener)")
     public void createOrderListener(@Payload byte[] data,ConsumerRecordMetadata meta, Acknowledgment ack) {
         logEvent(data, meta);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("data", new String(data)));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("data", new String(data)));
         try {
             final var event = jsonSerializer.deserializeFromJsonBytes(data,
                     OrderCreatedEvent.class);
@@ -81,7 +81,7 @@ public class OrderKafkaListener {
             log.info("ack event: {}", event);
         } catch (Exception e) {
             ack.nack(Duration.ofMillis(1000));
-            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.error(e));
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.error(e));
             log.error("createOrderListener: {}", e.getMessage());
         }
     }

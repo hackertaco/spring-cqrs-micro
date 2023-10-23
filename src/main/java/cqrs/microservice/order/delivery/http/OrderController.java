@@ -42,7 +42,7 @@ public class OrderController {
         log.info("id: {}", id);
         final var order = queryHandler.handle(new GetOrderByIdQuery(id));
         log.info("find order: {}", order);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("order", order.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("order", order.toString()));
         return ResponseEntity.ok(order);
     }
     @GetMapping(path = "/byEmail", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -51,7 +51,7 @@ public class OrderController {
                                                                 @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByUserEmailQuery(email, page, size));
         log.info("documents: {}", documents);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("documents", documents.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("documents", documents.toString()));
 
         return ResponseEntity.ok(documents);
 
@@ -62,7 +62,7 @@ public class OrderController {
                                                                  @RequestParam(name = "size", required = false, defaultValue = "10") Integer size){
         final var documents = queryHandler.handle(new GetOrdersByStatusQuery(status, page, size));
         log.info("documents: {} ", documents);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("documents", documents.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("documents", documents.toString()));
 
         return ResponseEntity.ok(documents);
     }
@@ -72,7 +72,7 @@ public class OrderController {
         final var command = OrderMapper.createOrderCommandFromDto(dto);
         final var id = commandHandler.handle(command);
         log.info("created order id: {}", id);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("id", id.toString()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
@@ -85,7 +85,7 @@ public class OrderController {
         command.setId(id);
         commandHandler.handle(command);
         log.info("changed address order id :{}, address: {} ", id, command.getDeliveryAddress());
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("id", id.toString()));
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -97,7 +97,7 @@ public class OrderController {
         command.setStatus(dto.status());
         commandHandler.handle(command);
         log.info("updated status order id :{}, status: {} ", id, command.getStatus());
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("id", id.toString()));
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

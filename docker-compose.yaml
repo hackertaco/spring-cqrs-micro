@@ -95,6 +95,13 @@ services:
       - ./src/main/resources/metrics/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus:/prometheus
     networks: [ "microservices" ]
+  node_exporter:
+    container_name: node_exporter_container
+    restart: always
+    image: prom/node-exporter
+    ports:
+      - '9101:9100'
+    networks: [ "microservices" ]
 
 networks:
   microservices:

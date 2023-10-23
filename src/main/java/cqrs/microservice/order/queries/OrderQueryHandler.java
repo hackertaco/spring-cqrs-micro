@@ -28,10 +28,10 @@ public class OrderQueryHandler implements QueryHandler{
     @Override
     @NewSpan(name = "(GetOrderByIdQuery)")
     public OrderResponseDto handle(GetOrderByIdQuery query) {
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("query", query.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("query", query.toString()));
         final var document = mongoRepository.findById(query.id());
         if(document.isPresent()){
-            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("orderDocument", document.toString()));
+            Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("orderDocument", document.toString()));
             return OrderMapper.orderResponseDtoFromDocument(document.get());
         }
         final var order = postgresRepository.findById(UUID.fromString(query.id()));
@@ -39,14 +39,14 @@ public class OrderQueryHandler implements QueryHandler{
 
         final var orderDocument = OrderMapper.orderDocumentFromEntity(order.get());
         mongoRepository.save(orderDocument);
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("orderDocument", orderDocument.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("orderDocument", orderDocument.toString()));
         return OrderMapper.orderResponseDtoFromEntity(order.get());
     }
 
     @Override
     @NewSpan(name = "(GetOrdersByUserEmailQuery)")
     public Page<OrderResponseDto> handle(GetOrdersByUserEmailQuery query) {
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("query", query.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("query", query.toString()));
         final var pageRequest = PageRequest.of(query.page(), query.size());
         return mongoRepository.findByUserEmailOrderByDeliveryDate(query.userEmail(), pageRequest).map(OrderMapper::orderResponseDtoFromDocument);
     }
@@ -54,7 +54,7 @@ public class OrderQueryHandler implements QueryHandler{
     @Override
     @NewSpan(name = "(GetOrdersByStatusQuery)")
     public Page<OrderResponseDto> handle(GetOrdersByStatusQuery query) {
-        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("query", query.toString()));
+        Optional.ofNullable(tracer.getIfAvailable().currentSpan()).ifPresent(span -> span.tag("query", query.toString()));
         final var pageRequest = PageRequest.of(query.page(), query.size());
         return mongoRepository.findByStatusOrderByCreatedAt(query.status(), pageRequest).map(OrderMapper::orderResponseDtoFromDocument);
     }

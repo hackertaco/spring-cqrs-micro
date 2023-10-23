@@ -39,7 +39,7 @@ public class GlobalControllerAdvice{
         final var response = new InternalServerErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(),
                 LocalDateTime.now().toString());
         log.error("OrderNotFoundException response: {}", response);
-        Optional.ofNullable(tracer.currentSpan()).map(span -> span.error(ex));
+        Optional.ofNullable(tracer.currentSpan()).ifPresent(span -> span.error(ex));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
     @NewSpan(name = "handleInvalidArgument")
