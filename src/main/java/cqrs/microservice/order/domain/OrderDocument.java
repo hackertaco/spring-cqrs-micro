@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @Document(collection = "orders")
 public class OrderDocument {
-//    @Id
-//    private String objectId;
+
     @Id
     @Column(name = "_id")
     private String id;

@@ -1,7 +1,7 @@
 package cqrs.microservice.order.events;
 
 import cqrs.microservice.order.exceptions.OrderNotFoundException;
-import cqrs.microservice.order.mappers.OrderMapper;
+import cqrs.microservice.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderMongoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

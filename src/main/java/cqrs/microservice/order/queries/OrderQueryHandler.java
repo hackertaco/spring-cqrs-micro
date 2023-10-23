@@ -2,7 +2,7 @@ package cqrs.microservice.order.queries;
 
 import cqrs.microservice.order.dto.OrderResponseDto;
 import cqrs.microservice.order.exceptions.OrderNotFoundException;
-import cqrs.microservice.order.mappers.OrderMapper;
+import cqrs.microservice.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderMongoRepository;
 import cqrs.microservice.order.repository.OrderPostgresRepository;
 import lombok.RequiredArgsConstructor;

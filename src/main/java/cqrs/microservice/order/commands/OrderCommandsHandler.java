@@ -6,7 +6,7 @@ import cqrs.microservice.order.events.OrderCreatedEvent;
 import cqrs.microservice.order.events.OrderDeliveryAddressChangedEvent;
 import cqrs.microservice.order.events.OrderStatusUpdatedEvent;
 import cqrs.microservice.order.exceptions.OrderNotFoundException;
-import cqrs.microservice.order.mappers.OrderMapper;
+import cqrs.microservice.mappers.OrderMapper;
 import cqrs.microservice.order.repository.OrderPostgresRepository;
 import cqrs.microservice.shared.serializer.JsonSerializer;
 import io.micrometer.tracing.Tracer;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import io.micrometer.tracing.annotation.NewSpan;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +43,7 @@ public class OrderCommandsHandler implements CommandHandler{
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("CreateOrderCommand", command.toString()));
         final var order = OrderMapper.orderFromCreateOrderCommand(command);
         final var savedOrder = postgresRepository.save(order);
-        final var event = new OrderCreatedEvent(order.getId().toString(), order.getUserEmail(), order.getUserName(), order.getDeliveryAddress(), order.getStatus(), order.getDeliveryDate());
-
+        final var event = OrderMapper.orderCreatedEventFromOrder(order);
         publishMessage(orderKafkaTopicsConfiguration.getOrderCreatedTopic(), savedOrder, null);
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("savedOrder", savedOrder.toString()));
         log.info("savedOrder: {}", savedOrder);
@@ -65,7 +63,7 @@ public class OrderCommandsHandler implements CommandHandler{
         order.setUpdatedAt(LocalDateTime.now());
         postgresRepository.save(order);
         final var event = new OrderStatusUpdatedEvent(order.getId().toString(),order.getStatus());
-        publishMessage(orderKafkaTopicsConfiguration.getOrderStatusUpdatedTopic(), order, Map.of("Taco", "PRO".getBytes(StandardCharsets.UTF_8)));
+        publishMessage(orderKafkaTopicsConfiguration.getOrderStatusUpdatedTopic(), order, Map.of("traceId", UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("event", event.toString()));
     }
 

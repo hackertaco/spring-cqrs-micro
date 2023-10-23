@@ -1,8 +1,10 @@
-package cqrs.microservice.order.mappers;
+package cqrs.microservice.mappers;
 
 import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.domain.Order;
 import cqrs.microservice.order.domain.OrderDocument;
+import cqrs.microservice.order.domain.OrderStatus;
+import cqrs.microservice.order.dto.CreateOrderDto;
 import cqrs.microservice.order.dto.OrderResponseDto;
 import cqrs.microservice.order.events.OrderCreatedEvent;
 
@@ -10,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public final class OrderMapper {
+    private OrderMapper(){}
     public static OrderResponseDto orderResponseDtoFromEntity(Order order){
         return OrderResponseDto.builder()
                 .id(order.getId().toString())
@@ -68,5 +71,27 @@ public final class OrderMapper {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public static CreateOrderCommand createOrderCommandFromDto(CreateOrderDto dto){
+        final var command = new CreateOrderCommand();
+        command.setId(UUID.randomUUID().toString());
+        command.setUserEmail(dto.userEmail());
+        command.setUserName(dto.userName());
+        command.setStatus(OrderStatus.NEW);
+        command.setDeliveryAddress(dto.deliveryAddress());
+        command.setDeliveryDate(dto.deliveryDate());
+        return command;
+    }
+
+    public static OrderCreatedEvent orderCreatedEventFromOrder(Order order){
+        return new OrderCreatedEvent(
+                order.getId().toString(),
+                order.getUserEmail(),
+                order.getUserName(),
+                order.getDeliveryAddress(),
+                order.getStatus(),
+                order.getDeliveryDate()
+        );
     }
 }

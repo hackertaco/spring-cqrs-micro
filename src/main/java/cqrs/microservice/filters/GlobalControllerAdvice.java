@@ -6,6 +6,7 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.annotation.NewSpan;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 @ControllerAdvice
 @Slf4j
 @RequiredArgsConstructor
 @Order(2)
-public class GlobalControllerAdvice extends ResponseEntityExceptionHandler {
+public class GlobalControllerAdvice{
     private final Tracer tracer;
 
     @ExceptionHandler(RuntimeException.class)
@@ -40,22 +42,12 @@ public class GlobalControllerAdvice extends ResponseEntityExceptionHandler {
         Optional.ofNullable(tracer.currentSpan()).map(span -> span.error(ex));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    @Override
-    @NewSpan(name = "handleMethodArgumentNotValid")
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", ZonedDateTime.now());
-        body.put("status", status.value());
-
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.toList());
-        body.put("errors", errors);
-        Optional.ofNullable(tracer.currentSpan()).map(span -> span.error(ex));
-
-
-        return new ResponseEntity<>(body, status);
+    @NewSpan(name = "handleInvalidArgument")
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException ex){
+        final Map<String, String> errorMap = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> errorMap.put(error.getField(), error.getDefaultMessage()));
+        return errorMap;
     }
 }

@@ -1,11 +1,15 @@
 package cqrs.microservice.order.delivery.http;
 
+import cqrs.microservice.mappers.OrderMapper;
 import cqrs.microservice.order.commands.ChangeDeliveryAddressCommand;
 import cqrs.microservice.order.commands.CommandHandler;
 import cqrs.microservice.order.commands.CreateOrderCommand;
 import cqrs.microservice.order.commands.UpdateOrderStatusCommand;
 import cqrs.microservice.order.domain.OrderStatus;
+import cqrs.microservice.order.dto.ChangeDeliveryAddressDto;
+import cqrs.microservice.order.dto.CreateOrderDto;
 import cqrs.microservice.order.dto.OrderResponseDto;
+import cqrs.microservice.order.dto.UpdateOrderStatusDto;
 import cqrs.microservice.order.queries.GetOrderByIdQuery;
 import cqrs.microservice.order.queries.GetOrdersByStatusQuery;
 import cqrs.microservice.order.queries.GetOrdersByUserEmailQuery;
@@ -64,32 +68,35 @@ public class OrderController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CreateOrderCommand> createOrder(@Valid @RequestBody CreateOrderCommand command){
-        command.setId(UUID.randomUUID().toString());
-        command.setStatus(OrderStatus.NEW);
+    public ResponseEntity<String> createOrder(@Valid @RequestBody CreateOrderDto dto){
+        final var command = OrderMapper.createOrderCommandFromDto(dto);
         final var id = commandHandler.handle(command);
         log.info("created order id: {}", id);
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @PutMapping(path = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> changeDeliveryAddress(@RequestBody @Valid ChangeDeliveryAddressCommand command,
+    public ResponseEntity<Void> changeDeliveryAddress(@RequestBody @Valid ChangeDeliveryAddressDto dto,
                                                       @PathVariable String id) {
+        final var command = new ChangeDeliveryAddressCommand();
+        command.setDeliveryAddress(dto.deliveryAddress());
         command.setId(id);
         commandHandler.handle(command);
-        log.info("changed address id :{}, address: {} ", id, command.getDeliveryAddress());
+        log.info("changed address order id :{}, address: {} ", id, command.getDeliveryAddress());
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
     @PutMapping(path = "{id}/status", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateOrderStatus(@RequestBody @Valid UpdateOrderStatusCommand command,
+    public ResponseEntity<Void> updateOrderStatus(@RequestBody @Valid UpdateOrderStatusDto dto,
                                                       @PathVariable String id) {
+        final var command = new UpdateOrderStatusCommand();
         command.setId(id);
+        command.setStatus(dto.status());
         commandHandler.handle(command);
-        log.info("updated status id :{}, status: {} ", id, command.getStatus());
+        log.info("updated status order id :{}, status: {} ", id, command.getStatus());
         Optional.ofNullable(tracer.getIfAvailable().currentSpan()).map(span -> span.tag("id", id.toString()));
 
         return ResponseEntity.status(HttpStatus.OK).build();
